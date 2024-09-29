@@ -3,7 +3,7 @@ const cors = require("cors");
 var bodyParser = require("body-parser");
 const accountSid = cds.env.requires["TWILIO"]["TWILIO_ACCOUNT_SID"];;
 const authToken = cds.env.requires["TWILIO"]["TWILIO_AUTH_TOKEN"];;
-const twilio = require("twilio")(accountSid,authToken);
+const twilio = require("twilio")
 const MessagingResponse = twilio.twiml.MessagingResponse;
 const { getChatRagResponseChat } = require('./chat-service-whats');
 

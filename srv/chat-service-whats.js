@@ -16,7 +16,7 @@ const systemPrompt =
 async function getChatRagResponseChat(MessageTwilio) {
     try {
         const capllmplugin = await cds.connect.to("cap-llm-plugin");
-        const { Conversation, Message } = this.entities;
+        const { Conversation, Message } = cds.entities;
 
         //preencher tudo para obter mensagens anteriores
         const user_query = MessageTwilio.Body
@@ -28,7 +28,7 @@ async function getChatRagResponseChat(MessageTwilio) {
 
 
         //Optional. handle memory before the RAG LLM call
-        const memoryContext = await storeRetrieveMessagesWhats(messageId, message_time, user_id, user_query, Conversation, Message);
+        const memoryContext = await storeRetrieveMessagesWhats(conversationId, messageId, message_time, user_id, user_query, Conversation, Message);
 
         //Obtain the model configs configured in package.json
         const chatModelConfig = cds.env.requires["gen-ai-hub"]["chat"];

@@ -89,7 +89,7 @@ async function storeRetrieveMessages(conversationId, messageId, message_time, us
 
 
 // Helper method to handle conversation memory in HANA CLoud before RAG LLM call.
-async function storeRetrieveMessagesWhats(messageId, message_time, user_id, user_query, Conversation, Message) {
+async function storeRetrieveMessagesWhats(conversationId, messageId, message_time, user_id, user_query, Conversation, Message) {
     try {
 
         let memoryContext = [];
