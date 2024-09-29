@@ -1,6 +1,7 @@
 const cds = require("@sap/cds");
 const cors = require("cors");
 var bodyParser = require("body-parser");
+process.env.TWILIO_AUTH_TOKEN = cds.env.requires["TWILIO"]["TWILIO_AUTH_TOKEN"];
 const twilio = require("twilio")
 const { getChatRagResponseChat } = require('./chat-service-whats');
 
