@@ -7,7 +7,7 @@ using {
 
 entity Conversation {
 
-    key cID : UUID not null;
+    key cID : String not null;
     userID: String;
     creation_time: Timestamp;
     last_update_time: Timestamp;
@@ -18,7 +18,7 @@ entity Conversation {
 entity Message {
 
     key cID: Association to Conversation;
-    key mID: UUID not null;
+    key mID: String not null;
     role: String;
     content: LargeString;
     creation_time: Timestamp;

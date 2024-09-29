@@ -13,25 +13,22 @@ const contentColumn = 'TEXT_CHUNK';
 const systemPrompt = 
 'Você é um chatbot. Responda à pergunta do usuário com base apenas no contexto, delimitado por acentos graves triplos\n ';
 ;
-async function getChatRagResponseChat(sender, message) {
+async function getChatRagResponseChat(MessageTwilio) {
     try {
         const capllmplugin = await cds.connect.to("cap-llm-plugin");
+        const { Conversation, Message } = this.entities;
 
-        //request input data
-        const user_query = req.body.Body
-
-        //verificar se já existe uma conversa com o id do usuário que ocorreu em menos de 5 minutos
-        //caso houver, , recuperar o id. //caso contrário gerar uma nova conversa 
-
-        //com a nova conversa
         //preencher tudo para obter mensagens anteriores
-
-        //const { conversationId, messageId, message_time, user_id, user_query } = req.data;
-        //const { Conversation, Message } = this.entities;
+        const user_query = MessageTwilio.Body
+        const conversationId = MessageTwilio.ConversationSid
+        const messageId = MessageTwilio.MessageSid
+        const message_time = MessageTwilio.DateCreated
+        const user_id = MessageTwilio.Author
+     
 
 
         //Optional. handle memory before the RAG LLM call
-    const memoryContext = await storeRetrieveMessagesWhats(messageId, message_time, user_id, user_query, Conversation, Message);
+        const memoryContext = await storeRetrieveMessagesWhats(messageId, message_time, user_id, user_query, Conversation, Message);
 
         //Obtain the model configs configured in package.json
         const chatModelConfig = cds.env.requires["gen-ai-hub"]["chat"];

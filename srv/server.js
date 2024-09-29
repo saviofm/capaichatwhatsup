@@ -1,13 +1,13 @@
 const cds = require("@sap/cds");
 const cors = require("cors");
 var bodyParser = require("body-parser");
-const twilio = require("twilio");
+const accountSid = cds.env.requires["TWILIO"]["TWILIO_ACCOUNT_SID"];;
+const authToken = cds.env.requires["TWILIO"]["TWILIO_AUTH_TOKEN"];;
+const twilio = require("twilio")(accountSid,authToken);
 const { getChatRagResponseChat } = require('./chat-service-whats');
 
 cds.on("bootstrap", (app) => {
-    const accountSid = cds.env.requires["TWILIO"]["TWILIO_ACCOUNT_SID"];;
-    const authToken = cds.env.requires["TWILIO"]["TWILIO_AUTH_TOKEN"];;
-    const twilioClient = twilio(accountSid, authToken);
+
     app.use(bodyParser.urlencoded({ extended: true }));
 
     app.use(cors());
@@ -19,7 +19,7 @@ cds.on("bootstrap", (app) => {
             req.res.writeHead(200, { "Content-Type": "text/xml" });
             console.log(`Received message ${JSON.stringify(req.body)}.`)
             const twiml = new MessagingResponse();
-            const AImessage = await getChatRagResponseChat(req.body.From, req.body.Body)
+            const AImessage = await getChatRagResponseChat(req.body)
             twiml.message(AImessage);
             res.end(twiml.toString());
         }
