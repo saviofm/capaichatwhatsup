@@ -1,0 +1,5 @@
+### Test endpoint to restock books
+POST http://localhost:4004/twilioWebhook HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+Body=Yes 400&From=%2b18600000000
