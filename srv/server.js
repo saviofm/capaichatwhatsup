@@ -1,10 +1,7 @@
 const cds = require("@sap/cds");
 const cors = require("cors");
 var bodyParser = require("body-parser");
-const accountSid = cds.env.requires["TWILIO"]["TWILIO_ACCOUNT_SID"];;
-const authToken = cds.env.requires["TWILIO"]["TWILIO_AUTH_TOKEN"];;
 const twilio = require("twilio")
-const MessagingResponse = twilio.twiml.MessagingResponse;
 const { getChatRagResponseChat } = require('./chat-service-whats');
 
 cds.on("bootstrap", (app) => {
@@ -17,12 +14,9 @@ cds.on("bootstrap", (app) => {
         "/twilioWebhook",
         twilio.webhook({ validate: process.env.NODE_ENV === "production" }), // Don't validate in test mode
         async (req, res) => {
-            req.res.writeHead(200, { "Content-Type": "text/xml" });
             console.log(`Received message ${JSON.stringify(req.body)}.`)
-            const twiml = new MessagingResponse();
-            const AImessage = await getChatRagResponseChat(req.body)
-            twiml.message(AImessage);
-            res.end(twiml.toString());
+            const AImessage = await getChatRagResponseChat(req.body);
+            console.log (AImessage);
         }
     );
 

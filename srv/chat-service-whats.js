@@ -1,13 +1,20 @@
 const cds = require('@sap/cds');
 const { DELETE } = cds.ql;
 const { storeRetrieveMessagesWhats, storeModelResponse } = require('./memory-helper');
-
+const { uuid } = cds.utils
+const accountSid = cds.env.requires["TWILIO"]["TWILIO_ACCOUNT_SID"];
+const authToken = cds.env.requires["TWILIO"]["TWILIO_AUTH_TOKEN"];
+const client = require('twilio')(accountSid, authToken);
 //userId = cds.env.requires["SUCCESS_FACTORS_CREDENTIALS"]["USER_ID"]
+// Download the helper library from https://www.twilio.com/docs/node/install
+// Find your Account SID and Auth Token at twilio.com/console
+// and set the environment variables. See http://twil.io/secure
+
+
 
 const tableName = 'CAPAICHATWHATSUP_DOCUMENTCHUNK'; 
 const embeddingColumn  = 'EMBEDDING'; 
 const contentColumn = 'TEXT_CHUNK';
-
 
 
 const systemPrompt = 
@@ -20,11 +27,47 @@ async function getChatRagResponseChat(MessageTwilio) {
 
         //preencher tudo para obter mensagens anteriores
         const user_query = MessageTwilio.Body
-        const conversationId = MessageTwilio.ConversationSid
-        const messageId = MessageTwilio.MessageSid
-        const message_time = MessageTwilio.DateCreated
-        const user_id = MessageTwilio.Author
-     
+
+        let  user_id
+        if (MessageTwilio.Author){
+            user_id = MessageTwilio.Author
+        }else { 
+            user_id = MessageTwilio.From
+        }
+        
+
+        let  conversationId
+        if (MessageTwilio.ConversationSid){
+            conversationId = MessageTwilio.ConversationSid
+        }else { 
+            //obter conversa do mesmo id de até 5 minutos
+            let oDateNow = new Date();
+            oDateNow.setMinutes(oDateNow.getMinutes() - 5);
+            oDateNow = oDateNow.toISOString()
+            let oConversation = await SELECT.one.from(Conversation).where({ "userID": user_id,
+                                                    "last_update_time": { ">=": oDateNow }
+            });
+            if (oConversation){
+                conversationId = oConversation.cID
+            } else { 
+                conversationId = uuid()
+            }
+        }
+
+        
+        let messageId
+        if (MessageTwilio.MessageSid){
+            messageId = MessageTwilio.MessageSid
+        } else {
+            messageId = uuid()
+        }
+
+        let message_time 
+        if (MessageTwilio.DateCreated){
+            message_time = MessageTwilio.DateCreated
+        } else {
+            message_time = new Date().toISOString()
+        }
 
 
         //Optional. handle memory before the RAG LLM call
@@ -62,7 +105,13 @@ async function getChatRagResponseChat(MessageTwilio) {
         await storeModelResponse(conversationId, responseTimestamp, chatCompletionResponse, Message, Conversation);
 
         //build the response payload for the frontend.
-        return chatRagResponse.completion.choices[0].message.content;
+        // return chatRagResponse.completion.choices[0].message.content;
+        const msgReturn = chatRagResponse.completion.choices[0].message.content;
+        client.conversations.v1.conversations(conversationId)
+                                .messages
+                                .create({author: 'system', body: msgReturn })
+                                .then(message => console.log(message.sid));
+        return msgReturn                       
     }
     catch (error) {
         // Handle any errors that occur during the execution
