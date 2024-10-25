@@ -3,7 +3,7 @@
 /.cdsrc.json
 /.eslintrc
 /.vscode
-
+/.env
 # CAP capdoxnfse
 _out
 *.db

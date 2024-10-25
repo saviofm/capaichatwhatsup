@@ -83,7 +83,7 @@ sap.ui.define([
         requestConversationDelete: function (conversationID) {
             
             const settings = {
-                url: this.getBaseURL() + `/odata/v4/chat/Conversation(${conversationID})`,
+                url: this.getBaseURL() + `/odata/v4/chat/Conversation('${conversationID}')`,
                 method: "DELETE",
                 headers: {
                     "Content-type": "application/json"
@@ -261,7 +261,7 @@ sap.ui.define([
         requestFileDownload: function(fileID){
 
             const settings = {
-                url: this.getBaseURL() + `/odata/v4/embedding-storage/Files(${fileID})/content`,
+                url: this.getBaseURL() + `/odata/v4/embedding-storage/Files('${fileID}')/content`,
                 method: "GET",
                 xhrFields:{
                     responseType: "blob"
@@ -392,7 +392,7 @@ sap.ui.define([
         requestFileDelete: function(fileID){
 
             const settings = {
-                url: this.getBaseURL() + `/odata/v4/embedding-storage/Files(${fileID})`,
+                url: this.getBaseURL() + `/odata/v4/embedding-storage/Files('${fileID}')`,
                 method: "DELETE",
             };
 

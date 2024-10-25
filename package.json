@@ -55,19 +55,7 @@
                     }
                 },
                 "auth": {
-                    "passport": {
-                        "strategy": "mock",
-                        "users": {
-                            "JohnDole@tester.sap.com": {
-                                "ID": "JohnDole@tester.sap.com",
-                                "password": "initial"
-                            },
-                            "dummy@com": {
-                                "ID": "dummy@com",
-                                "password": "dummy"
-                            }
-                        }
-                    }
+                    "kind": "dummy-auth"
                 }
             },
             "[production]": {

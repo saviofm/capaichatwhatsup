@@ -163,14 +163,16 @@ module.exports = function () {
       // Delete any previous records in the table
       const { DocumentChunk, Files } = this.entities;
       const deletestatus =  
-        await DELETE.from(DocumentChunk).where({ file_ID: 
+        await DELETE.from(DocumentChunk)
+        /*.where({ file_ID: 
             SELECT('ID').from(Files).where(
               {
                 createdBy: req.user.id
               }
             )                   
           })
-        await UPDATE.entity(Files).where({createdBy: req.user.id}).set({embedded: false})   
+          */
+        await UPDATE.entity(Files).set({embedded: false})   
        return "Sucess!"
     }
     catch (error) {

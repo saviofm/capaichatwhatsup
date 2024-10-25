@@ -88,70 +88,6 @@ async function storeRetrieveMessages(conversationId, messageId, message_time, us
 
 
 
-// Helper method to handle conversation memory in HANA CLoud before RAG LLM call.
-async function storeRetrieveMessagesWhats(conversationId, messageId, message_time, user_id, user_query, Conversation, Message) {
-    try {
-
-        let memoryContext = [];
-        // Check if conversation exists in the db
-        const isConversationPresent = await SELECT.from(Conversation).where({ "cID": conversationId });
-        // If conversation is present, select messages from db and store it in memory context obj
-
-        if (isConversationPresent.length > 0) {
-            console.log(`Retrieving messages for conversation id: ${conversationId}`);
-            const messageSelectStmt = await SELECT.from(Message).where({ "cID_cID": conversationId }).orderBy('creation_time');
-            //parse the memory context for different models
-
-            if (messageSelectStmt.length > 0) {
-                messageSelectStmt.forEach(message => {
-                    memoryContext.push({
-                        "role": message.role,
-                        "content": message.content
-                    });
-                });
-            }
-            else { 
-                throw new Error(`Messages corresponding to conversation id: ${conversationId} not present!`) ;
-            }
-        }
-
-        // If conversation is not present, insert the conversation into db
-        else {
-             console.log(`Inserting new conversation for conversation id: ${conversationId}`);
-            const currentTimestamp = getCurrentTimestamp();
-            const conversationEntry = {
-                "cID": conversationId,
-                "userID": user_id,
-                "creation_time": currentTimestamp,
-                "last_update_time": currentTimestamp,
-                "title": user_query,
-            };
-            const conversationInsertStatus = await INSERT.into(Conversation).entries([conversationEntry]);
-            if (!conversationInsertStatus) { 
-                throw new Error("Insertion of conversation into db failed!"); 
-            };
-        }
-
-        // In both cases, insert the message into db
-        const messageRecord = {
-            "cID_cID": conversationId,
-            "mID": messageId,
-            "role": "user",
-            "content": user_query,
-            "creation_time": message_time
-        };
-
-        await insertMessage(Message, messageRecord, conversationId, Conversation, message_time);
-        return memoryContext;
-    }
-
-    catch (error) {
-        // Handle any errors that occur during the execution
-        console.log('Error handling memory prior to RAG response:', error);
-        throw error;
-    }
-}
-
 // Helper method to handle conversation memory in HANA CLoud after RAG LLM call.
 async function storeModelResponse(conversationId, message_time, chatRagResponse, Message, Conversation) {
     try {
@@ -176,6 +112,5 @@ async function storeModelResponse(conversationId, message_time, chatRagResponse,
 
 module.exports = {
     storeRetrieveMessages,
-    storeRetrieveMessagesWhats,
     storeModelResponse
 };

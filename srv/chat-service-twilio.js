@@ -1,6 +1,6 @@
 const cds = require('@sap/cds');
 const { DELETE } = cds.ql;
-const { storeRetrieveMessagesWhats, storeModelResponse } = require('./memory-helper');
+const { storeRetrieveMessages, storeModelResponse } = require('./memory-helper');
 const { uuid } = cds.utils
 const accountSid = cds.env.requires["TWILIO"]["TWILIO_ACCOUNT_SID"];
 const authToken = cds.env.requires["TWILIO"]["TWILIO_AUTH_TOKEN"];
@@ -20,7 +20,7 @@ const contentColumn = 'TEXT_CHUNK';
 const systemPrompt = 
 'Você é um chatbot. Responda à pergunta do usuário com base apenas no contexto, delimitado por acentos graves triplos\n ';
 ;
-async function getChatRagResponseChat(MessageTwilio) {
+async function getChatRagResponseTwilio(MessageTwilio) {
     try {
         const capllmplugin = await cds.connect.to("cap-llm-plugin");
         const { Conversation, Message } = cds.entities;
@@ -71,7 +71,7 @@ async function getChatRagResponseChat(MessageTwilio) {
 
 
         //Optional. handle memory before the RAG LLM call
-        const memoryContext = await storeRetrieveMessagesWhats(conversationId, messageId, message_time, user_id, user_query, Conversation, Message);
+        const memoryContext = await storeRetrieveMessages(conversationId, messageId, message_time, user_id, user_query, Conversation, Message);
 
         //Obtain the model configs configured in package.json
         const chatModelConfig = cds.env.requires["gen-ai-hub"]["chat"];
@@ -122,5 +122,5 @@ async function getChatRagResponseChat(MessageTwilio) {
 }
 
 
-module.exports = { getChatRagResponseChat }
+module.exports = { getChatRagResponseTwilio }
 

@@ -2,10 +2,7 @@ using {capaichatwhatsup as db} from '../db/schema';
 
 service ChatService @(requires: 'authenticated-user') {
 
-    entity Conversation @(restrict: [{
-        grant: ['READ','WRITE', 'DELETE'],
-        where: 'userID = $user'
-    }])                 as projection on db.Conversation;
+    entity Conversation as projection on db.Conversation;
     entity Message      as projection on db.Message;
 
     type RagResponse_AdditionalContents {
@@ -22,5 +19,10 @@ service ChatService @(requires: 'authenticated-user') {
     }
 
     action   getChatRagResponse(conversationId : String, messageId : String, message_time : Timestamp, user_id : String, user_query : String) returns RagResponse;
+    
+    function getChatRagResponseWhatsMetaAPI(
+        //conversationId : String, messageId : String, message_time : Timestamp, user_id : String, user_query : String
+        ) returns String;
+   
     function deleteChatData() returns String;
 }

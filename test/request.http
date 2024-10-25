@@ -1,3 +1,8 @@
+@server = http://localhost:4004
+@me = Authorization: Basic {{$processEnv USER}}:
+@basic = Authorization: Basic dummy@com:dummy
+
+
 ### Test endpoint to restock books
 POST http://localhost:4004/twilioWebhook HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
@@ -10,3 +15,16 @@ POST http://localhost:4004/twilioWebhook HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 
 MessageSid=IM2ae151d374a74b2282275070bc328153&MessagingServiceSid=MGa2c79a6177180b2dc6b3fbdf6771471b&EventType=onMessageAdded&Attributes=%7B%7D&DateCreated=2024-09-29T15%3A39%3A02.425Z&Index=2&ChatServiceSid=IS85114f9e374240b7b0489918859cdad8&AccountSid=AC8ade295e22adc8dBff510c962bc1f1a9&Source=WHATSAPP&RetryCount=0&Author=whatsapp%3A%2B5511976521534&ParticipantSid=MB4bff67c6673e4964ke76b69fc841bc1c&Body=Ol%C3%A1&ConversationSid=CHd86e7db4532741c6ac49219aa4979be0
+
+
+###  GET odata Conversations
+GET  {{server}}/odata/v4/chat/getChatRagResponseWhatsMetaAPI()
+Accept: application/json
+Content-Type: application/json
+
+//{
+//    "conversationId": "939394994",
+//    "messageId" : "393949494988",
+//    "user_id" : "savio.marques@sap.com",
+//    "user_query": "Olá"
+//}
