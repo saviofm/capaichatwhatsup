@@ -28,3 +28,8 @@ Content-Type: application/json
 //    "user_id" : "savio.marques@sap.com",
 //    "user_query": "Olá"
 //}
+
+
+
+###  GET odata Conversations
+GET  {{server}}/metaAPIWebhook

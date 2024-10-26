@@ -19,10 +19,7 @@ service ChatService @(requires: 'authenticated-user') {
     }
 
     action   getChatRagResponse(conversationId : String, messageId : String, message_time : Timestamp, user_id : String, user_query : String) returns RagResponse;
-    
-    function getChatRagResponseWhatsMetaAPI(
-        //conversationId : String, messageId : String, message_time : Timestamp, user_id : String, user_query : String
-        ) returns String;
+
    
     function deleteChatData() returns String;
 }
