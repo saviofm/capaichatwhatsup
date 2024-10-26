@@ -15,47 +15,40 @@ async function getChatRagResponseMeta(req) {
     try {
         const capllmplugin = await cds.connect.to("cap-llm-plugin");
         const { Conversation, Message } = cds.entities;
-        /*
+       
         //preencher tudo para obter mensagens anteriores
-        const user_query = MessageTwilio.Body
+        const user_query = req.user_query
+        const user_id = req.user_id
 
-        let  user_id
-        if (MessageTwilio.Author){
-            user_id = MessageTwilio.Author
-        }else { 
-            user_id = MessageTwilio.From
-        }
-        
+        //obter conversa do mesmo id de até 5 minutos
+        let oDateNow = new Date();
+        oDateNow.setMinutes(oDateNow.getMinutes() - 5);
+        oDateNow = oDateNow.toISOString()
 
-        let  conversationId
-        if (MessageTwilio.ConversationSid){
-            conversationId = MessageTwilio.ConversationSid
-        }else { 
-            //obter conversa do mesmo id de até 5 minutos
-            let oDateNow = new Date();
-            oDateNow.setMinutes(oDateNow.getMinutes() - 5);
-            oDateNow = oDateNow.toISOString()
-            let oConversation = await SELECT.one.from(Conversation).where({ "userID": user_id,
-                                                    "last_update_time": { ">=": oDateNow }
-            });
-            if (oConversation){
-                conversationId = oConversation.cID
-            } else { 
-                conversationId = uuid()
+        let oConversation = await SELECT.one.from(Conversation).where(
+            { 
+                "userID": user_id,
+                "last_update_time": { ">=": oDateNow }
             }
+        );
+        if (oConversation){
+            conversationId = oConversation.cID
+        } else { 
+            conversationId = uuid()
         }
 
-        
+        //message id
         let messageId
-        if (MessageTwilio.MessageSid){
-            messageId = MessageTwilio.MessageSid
+        if (req.messageId){
+            messageId = req.messageId
         } else {
             messageId = uuid()
         }
 
+        //message time 
         let message_time 
-        if (MessageTwilio.DateCreated){
-            message_time = MessageTwilio.DateCreated
+        if (req.message_time){
+            message_time = req.message_time
         } else {
             message_time = new Date().toISOString()
         }
@@ -73,7 +66,7 @@ async function getChatRagResponseMeta(req) {
         - Perform similarity search based on the user query 
         - Construct the prompt based on the system instruction and similarity search
         - Call chat completion model to retrieve relevant answer to the user query
-        
+        */
 
         const chatRagResponse = await capllmplugin.getRagResponseWithConfig(
             user_query,
@@ -98,12 +91,14 @@ async function getChatRagResponseMeta(req) {
         //build the response payload for the frontend.
         // return chatRagResponse.completion.choices[0].message.content;
         const msgReturn = chatRagResponse.completion.choices[0].message.content;
+
+        //Fazer chamada api meta pra retornar conversa
         client.conversations.v1.conversations(conversationId)
                                 .messages
                                 .create({author: 'system', body: msgReturn })
                                 .then(message => console.log(message.sid));
         return msgReturn 
-    */                      
+    
     }
     catch (error) {
         // Handle any errors that occur during the execution
