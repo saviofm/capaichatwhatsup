@@ -2,6 +2,11 @@ const cds = require('@sap/cds');
 const { DELETE } = cds.ql;
 const { storeRetrieveMessages, storeModelResponse } = require('./memory-helper');
 const { uuid } = cds.utils
+const fetch = require('node-fetch');
+
+const metaAPIversion = cds.env.requires["metaAPI"]["version"]
+const metaAPIAppToken = cds.env.requires["metaAPI"]["appToken"]
+const metaAPIPhone_ID = cds.env.requires["metaAPI"]["PHONE_NUMBER_ID"]
 
 const tableName = 'CAPAICHATWHATSUP_DOCUMENTCHUNK'; 
 const embeddingColumn  = 'EMBEDDING'; 
@@ -93,11 +98,15 @@ async function getChatRagResponseMeta(req) {
         const msgReturn = chatRagResponse.completion.choices[0].message.content;
 
         //Fazer chamada api meta pra retornar conversa
-        client.conversations.v1.conversations(conversationId)
-                                .messages
-                                .create({author: 'system', body: msgReturn })
-                                .then(message => console.log(message.sid));
-        return msgReturn 
+        const headers = new fetch.Headers();
+        let basicAuthorization = `Bearer ${jwt}`;
+        headers.set("Authorization", basicAuthorization);
+        headers.set('Content-Type','application/json');
+        const url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/messages`
+        const response = await fetch(url, { method: 'POST', headers: headers })
+        const data = await response.json();
+
+        return data 
     
     }
     catch (error) {
