@@ -73,7 +73,7 @@ sap.ui.define([
 
             const { conversationID } = oEvent.getParameter("arguments");
             this.getView().bindElement({
-                path: `/Conversation(${conversationID})`,
+                path: `/Conversation('${conversationID}')`,
             });
 
             this.loadConversationHistory(conversationID);
@@ -89,7 +89,7 @@ sap.ui.define([
 
         loadConversationHistory(conversationID) {
 
-            const url = this.getBaseURL() + `/odata/v4/chat/Conversation(${conversationID})/to_messages`;
+            const url = this.getBaseURL() + `/odata/v4/chat/Conversation('${conversationID}')/to_messages`;
             var oModel = new JSONModel();
             oModel.loadData(url);
             oModel.dataLoaded()

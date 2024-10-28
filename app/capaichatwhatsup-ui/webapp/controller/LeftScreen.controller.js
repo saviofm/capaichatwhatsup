@@ -185,7 +185,7 @@ sap.ui.define([
 
         uploadContent: function (item, id) {
             
-            var url = this.getBaseURL() + `/odata/v4/embedding-storage/Files(${id})/content`;
+            var url = this.getBaseURL() + `/odata/v4/embedding-storage/Files('${id}')/content`;
 			item.setUploadUrl(url);	
 			var oUploadSet = this.byId("uploadSet");
 			oUploadSet.setHttpRequestMethod("PUT");
