@@ -55,6 +55,7 @@ cds.on("bootstrap", (app) => {
                 return res.sendStatus(400)
             }
             const WhatsMessage = {}
+            WhatsMessage.from = body.value.contacts[0].wa_id
             WhatsMessage.user_id = body.value.metadata.display_phone_number
             WhatsMessage.user_query = body.value.messages.map((message)=>message.text.body).join('\n\n')
             

@@ -99,11 +99,23 @@ async function getChatRagResponseMeta(req) {
 
         //Fazer chamada api meta pra retornar conversa
         const headers = new fetch.Headers();
-        let basicAuthorization = `Bearer ${jwt}`;
+        let basicAuthorization = `Bearer ${metaAPIAppToken}`;
         headers.set("Authorization", basicAuthorization);
         headers.set('Content-Type','application/json');
         const url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/messages`
-        const response = await fetch(url, { method: 'POST', headers: headers })
+
+
+        const body = {  
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": user_id,
+            "type": "text",
+            "text": {
+                "body": msgReturn
+            }
+        }
+
+        const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
         const data = await response.json();
 
         return data 
