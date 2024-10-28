@@ -9,11 +9,12 @@ const tableName = 'capaichatwhatsup_DOCUMENTCHUNK';
 const embeddingColumn  = 'EMBEDDING'; 
 const contentColumn = 'TEXT_CHUNK';
 
-
 const systemPrompt = 
-'Você é um chatbot. Responda à pergunta do usuário com base apenas no contexto, delimitado por acentos graves triplos\n ';
+`Você é um chatbot. 
+Responda à pergunta do usuário de forma concisa, breve, resumida, 
+com menos de 100 palavras e com base apenas no contexto, 
+delimitado por acentos graves triplos\n `;
 ;
-
 
 module.exports = function () {
 

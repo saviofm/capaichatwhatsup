@@ -49,28 +49,40 @@ cds.on("bootstrap", (app) => {
     );
     app.post(
         "/metaAPIWebhook", async (req, res) => {
-            const body = req.body.entry[0]?.changes[0]//.value?.messages  
-            if (body.field !== 'messages'){
-                // not from the messages webhook so dont process
+            try {
+            
+                const body = req.body.entry[0]?.changes[0]//.value?.messages  
+                if (body.field !== 'messages'){
+                    // not from the messages webhook so dont process
+                    return res.sendStatus(400)
+                }
+
+                if (body.value.statuses) {
+                    return res.sendStatus(200)
+                }
+
+                res.sendStatus(200)
+                const WhatsMessage = {}
+                WhatsMessage.from = body.value.contacts[0].wa_id
+                WhatsMessage.user_id = body.value.metadata.display_phone_number
+                WhatsMessage.user_query = body.value.messages.map((message)=>message.text.body).join('\n\n')
+                
+                if (body.value.messages[0].id){
+                    WhatsMessage.messageId = body.value.messages[0].id
+                }
+
+                //Message time
+                if (body.value.messages[0].timestamp){
+                    const date = new Date(body.value.messages[0].timestamp * 1000)
+                    WhatsMessage.message_time  = date.toISOString(date);
+                }
+
+                const AImessage = await getChatRagResponseMeta(WhatsMessage);
+                
+            } catch (error) {
                 return res.sendStatus(400)
             }
-            const WhatsMessage = {}
-            WhatsMessage.from = body.value.contacts[0].wa_id
-            WhatsMessage.user_id = body.value.metadata.display_phone_number
-            WhatsMessage.user_query = body.value.messages.map((message)=>message.text.body).join('\n\n')
-            
-            if (body.value.messages[0].id){
-                WhatsMessage.messageId = body.value.messages[0].id
-            }
-
-            //Message time
-            if (body.value.messages[0].timestamp){
-                const date = new Date(body.value.messages[0].timestamp * 1000)
-                WhatsMessage.message_time  = date.toISOString(date);
-            }
-
-            const AImessage = await getChatRagResponseMeta(WhatsMessage);
-        }
+        }   
     );
 
 });
