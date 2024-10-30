@@ -6,14 +6,15 @@ const metaAPIToken = cds.env.requires["metaAPI"]["token"]
 const twilio = require("twilio")
 const { getChatRagResponseTwilio } = require('./chat-service-twilio');
 const { getChatRagResponseMeta } = require('./chat-service-meta');
+const cds_swagger = require("cds-swagger-ui-express");
 
 
 
 cds.on("bootstrap", (app) => {
 
- 
-    app.use(bodyParser.urlencoded({ extended: true }));
-    app.use(bodyParser.json());
+    app.use(cds_swagger());
+    app.use("/twilioWebhook", bodyParser.urlencoded({ extended: true }));
+    app.use("/metaAPIWebhook", bodyParser.json());
 
     app.use(cors());
 
@@ -88,13 +89,11 @@ cds.on("bootstrap", (app) => {
 });
 module.exports = cds.server;
 
-const cds_swagger = require("cds-swagger-ui-express")
-/*
-*  Use User Provided Variable to distinguish DEV, UAT, STAGE, PROD env deployment
-*/
+
+//*  Use User Provided Variable to distinguish DEV, UAT, STAGE, PROD env deployment
+//*/
 
 // if (process.env.dev == 'true' || process.env.NODE_ENV !== 'production') {
 //     const cds_swagger = require('cds-swagger-ui-express');
 //     cds.on('bootstrap', app => app.use(cds_swagger()));
 // }
-cds.on('bootstrap', app => app.use(cds_swagger()))
