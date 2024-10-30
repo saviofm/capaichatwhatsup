@@ -77,7 +77,7 @@ cds.on("bootstrap", (app) => {
                     WhatsMessage.message_time  = date.toISOString(date);
                 }
 
-                const AImessage = await getChatRagResponseMeta(WhatsMessage);
+                await getChatRagResponseMeta(WhatsMessage);
                 
             } catch (error) {
                 return res.sendStatus(400)
