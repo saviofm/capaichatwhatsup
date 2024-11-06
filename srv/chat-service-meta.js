@@ -112,7 +112,7 @@ async function getChatRagResponseMeta(req) {
         const body = {  
             "messaging_product": "whatsapp",
             "recipient_type": "individual",
-            "to": req.from,
+            "to": req.user_id,
             "type": "text",
             "text": {
                 "body": msgReturn
