@@ -51,7 +51,7 @@ cds.on("bootstrap", (app) => {
     app.post(
         "/metaAPIWebhook", async (req, res) => {
             try {
-            
+                console.log(JSON.stringify(req.body))
                 const body = req.body.entry[0]?.changes[0]//.value?.messages  
                 if (body.field !== 'messages'){
                     // not from the messages webhook so dont process
