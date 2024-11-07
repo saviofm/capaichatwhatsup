@@ -63,20 +63,33 @@ cds.on("bootstrap", (app) => {
                 }
 
                 res.sendStatus(200)
-                const WhatsMessage = {}
-                //WhatsMessage.from = body.value.contacts[0].wa_id
-                WhatsMessage.user_id = body.value.contacts[0].wa_id //body.value.metadata.display_phone_number
-                WhatsMessage.user_query = body.value.messages.map((message)=>message.text.body).join('\n\n')
-                
+                //Fill fields
+                let WhatsMessage = {
+                    user_id: body.value.contacts[0].wa_id,
+                    user_query: '',
+                    audio_messages: []
+                };
+
                 if (body.value.messages[0].id){
                     WhatsMessage.messageId = body.value.messages[0].id
-                }
+                }                
 
                 //Message time
                 if (body.value.messages[0].timestamp){
                     const date = new Date(body.value.messages[0].timestamp * 1000)
                     WhatsMessage.message_time  = date.toISOString(date);
                 }
+
+                body.value.messages.forEach((message) => {
+                    if (message.type === 'text') {
+                        WhatsMessage.user_query += `${message.text.body}\n\n`;
+                    } else if (message.type === 'audio') {
+                        WhatsMessage.audio_messages.push(message);
+                    }
+                });
+
+                
+
 
                 await getChatRagResponseMeta(WhatsMessage);
                 

@@ -1,12 +1,48 @@
+
+
+
 const cds = require('@sap/cds');
 const { DELETE } = cds.ql;
 const { storeRetrieveMessages, storeModelResponse } = require('./memory-helper');
 const { uuid } = cds.utils
 const fetch = require('node-fetch');
+const { Readable } = require('stream');
+const FormData = require('form-data');
+
+
 
 const metaAPIversion = cds.env.requires["metaAPI"]["version"]
 const metaAPIAppToken = cds.env.requires["metaAPI"]["appToken"]
 const metaAPIPhone_ID = cds.env.requires["metaAPI"]["PHONE_NUMBER_ID"]
+
+const azureWhisperBaseUrl = cds.env.requires["azureOPENAI"]["baseURLWhisper"]
+const azureWhisperApiVersion = cds.env.requires["azureOPENAI"]["apiVersionWhisper"]
+const azureWhisperDeploymentName = cds.env.requires["azureOPENAI"]["deploymentNameWhisper"]
+const azureWhisperToken = cds.env.requires["azureOPENAI"]["tokenWhisper"]  
+
+const azureTtsBaseUrl = cds.env.requires["azureOPENAI"]["baseURLTts"]
+const azureTtsApiVersion = cds.env.requires["azureOPENAI"]["apiVersionTts"]
+const azureTtsDeploymentName = cds.env.requires["azureOPENAI"]["deploymentNameTts"]
+const azureTtsToken = cds.env.requires["azureOPENAI"]["tokenTts"]  
+
+const { AzureOpenAI } = require('openai')
+
+//const openaiWhisper = new OpenAI({apiKey: azureWhisperToken});
+const openaiWhisper = new AzureOpenAI({
+    baseURL: azureWhisperBaseUrl,
+    apiKey: azureWhisperToken, 
+    apiVersion: azureWhisperApiVersion, 
+    deployment: azureWhisperDeploymentName 
+});
+
+const openaiTts = new AzureOpenAI({
+    baseURL: azureTtsBaseUrl, 
+    apiKey: azureTtsToken, 
+    apiVersion: azureTtsApiVersion, 
+    deployment: azureTtsDeploymentName 
+});
+
+
 
 const tableName = 'CAPAICHATWHATSUP_DOCUMENTCHUNK'; 
 const embeddingColumn  = 'EMBEDDING'; 
@@ -14,7 +50,7 @@ const contentColumn = 'TEXT_CHUNK';
 
 
 const systemPrompt = 
-`Você é um chatbot. Seu nome é Benedito
+`Você é um chatbot. Seu nome é Benedito.\n
 Responda à pergunta do usuário de forma concisa, breve, resumida, 
 com menos de 100 palavras e com base apenas no contexto, 
 delimitado por acentos graves triplos e na lingua de entrada do usuário\n `;
@@ -24,9 +60,17 @@ async function getChatRagResponseMeta(req) {
     try {
         const capllmplugin = await cds.connect.to("cap-llm-plugin");
         const { Conversation, Message } = cds.entities;
-       
+        
+        // headers para buscar media e enviar mensagens
+        let url = "";
+        const headers = new fetch.Headers();
+        let basicAuthorization = `Bearer ${metaAPIAppToken}`;
+        headers.set("Authorization", basicAuthorization);
+        headers.set('Content-Type','application/json');
+
+
+
         //preencher tudo para obter mensagens anteriores
-        const user_query = req.user_query
         const user_id = req.user_id
 
         //obter conversa do mesmo id de até 5 minutos
@@ -62,6 +106,35 @@ async function getChatRagResponseMeta(req) {
             message_time = new Date().toISOString()
         }
 
+        //Caso seja texto pegar já a user query
+        let user_query = req.user_query
+
+        if (req.audio_messages.length > 0) {
+
+            for ( audio_msg of req.audio_messages) {
+                //Get URL
+                url = `https://graph.facebook.com/${metaAPIversion}/${audio_msg.audio.id}`
+                const responseAudioUrl = await fetch(url, { method: 'GET', headers: headers })
+                const responseJsonUrl = await responseAudioUrl.json();
+
+                //GET Audio
+                const headersAudio = new fetch.Headers();
+                headersAudio.set("Authorization", basicAuthorization);
+                headersAudio.set('Content-Type', audio_msg.audio.mime_type);
+                url = responseJsonUrl.url
+                const responseAudio = await fetch(url, { method: 'GET', headers: headersAudio })
+
+                const arrayBuffer = await responseAudio.arrayBuffer();
+                const blob = new Blob([arrayBuffer], { type: audio_msg.audio.mime_type });
+                // Call whisper model to generate a transcription
+                const transcription = await openaiWhisper.audio.transcriptions.create({
+                    file: new File([blob], 'audio.ogg', { type: audio_msg.audio.mime_type }),
+                    model: "whisper-1",
+                    language: "pt", // this is optional but helps the model
+                });
+                user_query += transcription.text;
+            }
+        }
 
         //Optional. handle memory before the RAG LLM call
         const memoryContext = await storeRetrieveMessages(conversationId, messageId, message_time, user_id, user_query, Conversation, Message);
@@ -101,30 +174,64 @@ async function getChatRagResponseMeta(req) {
         // return chatRagResponse.completion.choices[0].message.content;
         const msgReturn = chatRagResponse.completion.choices[0].message.content;
 
-        //Fazer chamada api meta pra retornar conversa
-        const headers = new fetch.Headers();
-        let basicAuthorization = `Bearer ${metaAPIAppToken}`;
-        headers.set("Authorization", basicAuthorization);
-        headers.set('Content-Type','application/json');
-        const url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/messages`
 
+        //Caso seja audio, converter para audio para enviar:
+        /*
+        if (req.audio_messages.length > 0) {
+            const responseTtsAudio = await openaiTts.audio.speech.create({
+                model: azureTtsDeploymentName,
+                voice: "alloy",
+                input: msgReturn,
+                format: "opus"
+            });
+            const stream = await responseTtsAudio.body
+            //const buffer = Buffer.from(await responseTtsAudio.arrayBuffer());           
+            //const audioStream = responseTtsAudio.body;
+            //const audioBuffers = [];
 
-        const body = {  
-            "messaging_product": "whatsapp",
-            "recipient_type": "individual",
-            "to": req.user_id,
-            "type": "text",
-            "text": {
-                "body": msgReturn
+            //for await (const chunk of audioStream) {
+            //    audioBuffers.push(chunk);
+            //}
+
+            //const audioBuffer = Buffer.concat(audioBuffers);
+
+            //const ReadableStream = Readable.from(audioBuffer)
+     
+            const formAudio = new FormData();
+            formAudio.append('file', stream);
+            formAudio.append( 'messaging_product', 'whatsapp')
+            formAudio.append( 'type', 'audio/opus')
+            url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/media`
+            const headersMedia = {
+                'Authorization': basicAuthorization,
+                ...formAudio.getHeaders()
             }
+            
+            const responseMedia = await fetch(url, { method: 'POST', headers: headersMedia, body: formAudio });
+            const mediaID = await responseMedia.json();
+            console.log(mediaID)
+        } else {
+        */
+            //Caso seja somente mensagem
+
+            //Fazer chamada api meta pra retornar conversa
+            url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/messages`
+            const body = {  
+                "messaging_product": "whatsapp",
+                "recipient_type": "individual",
+                "to": req.user_id,
+                "type": "text",
+                "text": {
+                    "body": msgReturn
+                }
+            }
+
+            const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
+            const data = await response.json();
+
+            return data 
         }
-
-        const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
-        const data = await response.json();
-
-        return data 
-    
-    }
+    //}
     catch (error) {
         // Handle any errors that occur during the execution
         console.log('Erro ao gerar resposta para consulta do usuário:', error);
