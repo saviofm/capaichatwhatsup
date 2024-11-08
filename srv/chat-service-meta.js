@@ -8,7 +8,7 @@ const { uuid } = cds.utils
 const fetch = require('node-fetch');
 const { Readable } = require('stream');
 const FormData = require('form-data');
-
+const { Blob, File } = require('node:buffer');
 
 
 const metaAPIversion = cds.env.requires["metaAPI"]["version"]
@@ -61,7 +61,7 @@ async function getChatRagResponseMeta(req) {
         const capllmplugin = await cds.connect.to("cap-llm-plugin");
         const { Conversation, Message } = cds.entities;
         
-        // headers para buscar media e enviar mensagens
+        // Headers para buscar media e enviar mensagens
         let url = "";
         const headers = new fetch.Headers();
         let basicAuthorization = `Bearer ${metaAPIAppToken}`;
@@ -116,13 +116,14 @@ async function getChatRagResponseMeta(req) {
                 url = `https://graph.facebook.com/${metaAPIversion}/${audio_msg.audio.id}`
                 const responseAudioUrl = await fetch(url, { method: 'GET', headers: headers })
                 const responseJsonUrl = await responseAudioUrl.json();
-
+                console.log(responseJsonUrl.url)
                 //GET Audio
                 const headersAudio = new fetch.Headers();
                 headersAudio.set("Authorization", basicAuthorization);
                 headersAudio.set('Content-Type', audio_msg.audio.mime_type);
                 url = responseJsonUrl.url
                 const responseAudio = await fetch(url, { method: 'GET', headers: headersAudio })
+                console.log(JSON.stringify(responseAudio.status))
 
                 const arrayBuffer = await responseAudio.arrayBuffer();
                 const blob = new Blob([arrayBuffer], { type: audio_msg.audio.mime_type });
@@ -167,71 +168,84 @@ async function getChatRagResponseMeta(req) {
             "content": chatRagResponse.completion.choices[0].message.content
         }
         //Optional. handle memory after the RAG LLM call
-            const responseTimestamp = new Date().toISOString();
+        const responseTimestamp = new Date().toISOString();
         await storeModelResponse(conversationId, responseTimestamp, chatCompletionResponse, Message, Conversation);
 
         //build the response payload for the frontend.
         // return chatRagResponse.completion.choices[0].message.content;
         const msgReturn = chatRagResponse.completion.choices[0].message.content;
 
-
+        url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/messages`
+         //Fazer chamada api meta pra retornar conversa
+        let body = {  
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": req.user_id,
+            "type": "text",
+            "text": {
+                "body": msgReturn
+            }
+        }
         //Caso seja audio, converter para audio para enviar:
-        /*
         if (req.audio_messages.length > 0) {
             const responseTtsAudio = await openaiTts.audio.speech.create({
                 model: azureTtsDeploymentName,
                 voice: "alloy",
                 input: msgReturn,
-                format: "opus"
+                response_format: "opus"
             });
-            const stream = await responseTtsAudio.body
-            //const buffer = Buffer.from(await responseTtsAudio.arrayBuffer());           
-            //const audioStream = responseTtsAudio.body;
-            //const audioBuffers = [];
-
-            //for await (const chunk of audioStream) {
-            //    audioBuffers.push(chunk);
-            //}
-
-            //const audioBuffer = Buffer.concat(audioBuffers);
-
-            //const ReadableStream = Readable.from(audioBuffer)
-     
+            
+            const arrayBuffer = await responseTtsAudio.arrayBuffer();
+            
             const formAudio = new FormData();
-            formAudio.append('file', stream);
+            formAudio.append('file', Buffer.from(arrayBuffer), {filename: "audio.opus"});
             formAudio.append( 'messaging_product', 'whatsapp')
             formAudio.append( 'type', 'audio/opus')
-            url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/media`
+            const urlMedia = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/media`
             const headersMedia = {
                 'Authorization': basicAuthorization,
                 ...formAudio.getHeaders()
             }
             
-            const responseMedia = await fetch(url, { method: 'POST', headers: headersMedia, body: formAudio });
-            const mediaID = await responseMedia.json();
-            console.log(mediaID)
-        } else {
-        */
-            //Caso seja somente mensagem
+            const responseMedia = await fetch(urlMedia, { method: 'POST', headers: headersMedia, body: formAudio });
+            const mediaID = await responseMedia.json();        
 
-            //Fazer chamada api meta pra retornar conversa
-            url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/messages`
-            const body = {  
-                "messaging_product": "whatsapp",
-                "recipient_type": "individual",
-                "to": req.user_id,
-                "type": "text",
-                "text": {
-                    "body": msgReturn
-                }
+            if (mediaID.id) {
+                //Fazer chamada api meta pra retornar conversa audio      
+                body = {  
+                    "messaging_product": "whatsapp",
+                    "recipient_type": "individual",
+                    "to": req.user_id,
+                    "type": "audio",
+                    "audio": {
+                        "id": mediaID.id
+                    }
+                } 
+            } else {
+                  //Fazer chamada api meta pra retornar conversa texto      
+                  body = {  
+                    "messaging_product": "whatsapp",
+                    "recipient_type": "individual",
+                    "to": req.user_id,
+                    "type": "text",
+                    "text": {
+                        "body": msgReturn
+                    }
+                } 
             }
+            const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
+            const data = await response.json();
 
+            return data 
+        } else {
+        
+            //Caso seja somente mensagem
             const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
             const data = await response.json();
 
             return data 
         }
-    //}
+    }
     catch (error) {
         // Handle any errors that occur during the execution
         console.log('Erro ao gerar resposta para consulta do usuário:', error);
