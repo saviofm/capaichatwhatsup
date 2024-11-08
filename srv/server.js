@@ -59,7 +59,8 @@ cds.on("bootstrap", (app) => {
                 }
 
                 if (body.value.statuses) {
-                    return res.sendStatus(200)
+                    return res.
+                    sendStatus(200)
                 }
 
                 res.sendStatus(200)
@@ -94,7 +95,8 @@ cds.on("bootstrap", (app) => {
                 await getChatRagResponseMeta(WhatsMessage);
                 
             } catch (error) {
-                return res.sendStatus(400)
+                console.log(error)
+                //return res.sendStatus(400)
             }
         }   
     );

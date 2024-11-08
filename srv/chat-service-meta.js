@@ -190,9 +190,10 @@ async function getChatRagResponseMeta(req) {
         if (req.audio_messages.length > 0) {
             const responseTtsAudio = await openaiTts.audio.speech.create({
                 model: azureTtsDeploymentName,
-                voice: "alloy",
+                voice: "onyx",
                 input: msgReturn,
-                response_format: "opus"
+                response_format: "opus",
+                speed: 0.9
             });
             
             const arrayBuffer = await responseTtsAudio.arrayBuffer();
@@ -221,30 +222,14 @@ async function getChatRagResponseMeta(req) {
                         "id": mediaID.id
                     }
                 } 
-            } else {
-                  //Fazer chamada api meta pra retornar conversa texto      
-                  body = {  
-                    "messaging_product": "whatsapp",
-                    "recipient_type": "individual",
-                    "to": req.user_id,
-                    "type": "text",
-                    "text": {
-                        "body": msgReturn
-                    }
-                } 
-            }
-            const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
-            const data = await response.json();
-
-            return data 
-        } else {
-        
-            //Caso seja somente mensagem
-            const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
-            const data = await response.json();
-
-            return data 
+            } 
         }
+        
+        const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
+        const data = await response.json();
+
+        return data 
+        
     }
     catch (error) {
         // Handle any errors that occur during the execution
