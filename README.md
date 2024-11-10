@@ -12,17 +12,17 @@ Também é possível comunicação com whatsapp via meta api e tbm twilio
 3. [Crie um Destination](https://help.sap.com/docs/btp/sap-business-technology-platform/create-destination) para o Generative AI Hub no SAP BTP Cockpit da sua subconta, baseado na Chave de Serviço do SAP AI Core que você criou no passo anterior:
 
 ```
-Nome: GENERATIVE_AI_HUB
-Descrição: Serviço implantado no SAP AI Core (hub de IA generativa)
-URL: <AI-API-OF-AI-CORE-SERVICE-KEY>/v2 # certifique-se de adicionar /v2!
-Tipo: HTTP
+Name: GENERATIVE_AI_HUB
+Description: SAP AI Core deployed service (generative AI hub)
+URL: <AI-API-OF-AI-CORE-SERVICE-KEY>/v2 # make sure to add /v2!
+Type: HTTP
 ProxyType: Internet
 Authentication: OAuth2ClientCredentials
 tokenServiceURL: <TOKEN-SERVICE-URL-OF-AI-CORE-SERVICE-KEY>/oauth/token
 clientId: <YOUR-CLIENT-ID-OF-AI-CORE-SERVICE-KEY>
 clientSecret: <YOUR-CLIENT-SECRET-OF-AI-CORE-SERVICE-KEY>
-# Propriedades adicionais:
-URL.headers.AI-Resource-Group: default # ajuste se necessário
+# Additional Properties:
+URL.headers.AI-Resource-Group: default # adjust if necessary
 URL.headers.Content-Type: application/json
 HTML5.DynamicDestination: true
 ```
