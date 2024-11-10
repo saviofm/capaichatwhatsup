@@ -78,7 +78,9 @@
                     text="{i18n>manageFiles}" 
                     select=".onManageFileBtnSelect"/>
             </tnt:NavigationList>
-
+            <m:HBox id="hboxleft" justifyContent="Center">
+                <m:Text id="deploybyof" text="{i18n>deployby}"/>
+            </m:HBox>
         </m:content>
     </m:Page>
 </mvc:View>
