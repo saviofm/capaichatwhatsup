@@ -51,7 +51,8 @@ cds.on("bootstrap", (app) => {
     app.post(
         "/metaAPIWebhook", async (req, res) => {
             try {
-            
+                console.log("payload geral" )
+                console.log(JSON.stringify(req.body))
                 const body = req.body.entry[0]?.changes[0]//.value?.messages  
                 if (body.field !== 'messages'){
                     // not from the messages webhook so dont process
@@ -79,7 +80,10 @@ cds.on("bootstrap", (app) => {
                 if (body.value.messages[0].timestamp){
                     const date = new Date(body.value.messages[0].timestamp * 1000)
                     WhatsMessage.message_time  = date.toISOString(date);
+                
                 }
+                console.log("payload")
+                console.log(JSON.stringify(body.value.messages))
 
                 body.value.messages.forEach((message) => {
                     if (message.type === 'text') {

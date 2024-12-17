@@ -35,7 +35,7 @@
             <m:ScrollContainer
                 id="leftScreenScrollContainer"
                 vertical="true"
-                height="75%"
+                height="73%"
                 focusable="true">
                 <m:List
                     id="leftScreenChatList"

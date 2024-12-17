@@ -110,33 +110,38 @@ async function getChatRagResponseMeta(req) {
         let user_query = req.user_query
 
         if (req.audio_messages.length > 0) {
-
+  
             for ( audio_msg of req.audio_messages) {
-                //Get URL
-                url = `https://graph.facebook.com/${metaAPIversion}/${audio_msg.audio.id}`
-                const responseAudioUrl = await fetch(url, { method: 'GET', headers: headers })
-                const responseJsonUrl = await responseAudioUrl.json();
-                console.log(responseJsonUrl.url)
-                //GET Audio
-                const headersAudio = new fetch.Headers();
-                headersAudio.set("Authorization", basicAuthorization);
-                headersAudio.set('Content-Type', audio_msg.audio.mime_type);
-                url = responseJsonUrl.url
-                const responseAudio = await fetch(url, { method: 'GET', headers: headersAudio })
-                console.log(JSON.stringify(responseAudio.status))
+                if (audio_msg.audio) {
+                    //Get URL
+                    url = `https://graph.facebook.com/${metaAPIversion}/${audio_msg.audio.id}`
+                    const responseAudioUrl = await fetch(url, { method: 'GET', headers: headers })
+                    const responseJsonUrl = await responseAudioUrl.json();
+                    console.log(responseJsonUrl.url)
+                    //GET Audio
+                    const headersAudio = new fetch.Headers();
+                    headersAudio.set("Authorization", basicAuthorization);
+                    headersAudio.set('Content-Type', audio_msg.audio.mime_type);
+                    url = responseJsonUrl.url
+                    const responseAudio = await fetch(url, { method: 'GET', headers: headersAudio })
+                    console.log(JSON.stringify(responseAudio.status))
 
-                const arrayBuffer = await responseAudio.arrayBuffer();
-                const blob = new Blob([arrayBuffer], { type: audio_msg.audio.mime_type });
-                // Call whisper model to generate a transcription
-                const transcription = await openaiWhisper.audio.transcriptions.create({
-                    file: new File([blob], 'audio.ogg', { type: audio_msg.audio.mime_type }),
-                    model: "whisper-1",
-                    language: "pt", // this is optional but helps the model
-                });
-                user_query += transcription.text;
+                    const arrayBuffer = await responseAudio.arrayBuffer();
+                    const blob = new Blob([arrayBuffer], { type: audio_msg.audio.mime_type });
+                    // Call whisper model to generate a transcription
+                    const transcription = await openaiWhisper.audio.transcriptions.create({
+                        file: new File([blob], 'audio.ogg', { type: audio_msg.audio.mime_type }),
+                        model: "whisper-1"//,
+                        //language: "pt", // this is optional but helps the model
+                    });
+                    user_query += transcription.text;
+                }
+            }
+            // em caso de não conseguir retornar audio:
+            if (user_query == '') {
+                user_query == "Enviar uma mensagem divertida que não foi possível responder pois a API da meta não enviou os audio corretamente"
             }
         }
-
         //Optional. handle memory before the RAG LLM call
         const memoryContext = await storeRetrieveMessages(conversationId, messageId, message_time, user_id, user_query, Conversation, Message);
 
