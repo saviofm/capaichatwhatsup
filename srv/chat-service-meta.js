@@ -179,7 +179,7 @@ async function getChatRagResponseMeta(req) {
         //build the response payload for the frontend.
         // return chatRagResponse.completion.choices[0].message.content;
         const msgReturn = chatRagResponse.completion.choices[0].message.content;
-
+        console.log(msgReturn);
         url = `https://graph.facebook.com/${metaAPIversion}/${metaAPIPhone_ID}/messages`
          //Fazer chamada api meta pra retornar conversa
         let body = {  
@@ -232,6 +232,9 @@ async function getChatRagResponseMeta(req) {
         
         const response = await fetch(url, { method: 'POST', headers: headers, body:  JSON.stringify(body) })
         const data = await response.json();
+        if (data.error){
+            console.log(JSON.stringify(data.error))
+        }
 
         return data 
         
